@@ -2,7 +2,7 @@
 
 An AI-agent-driven pipeline that finds job listings, curates and scores them against your profile, tracks applications end to end, and generates tailored resumes/cover letters — built on a "Workflows, Agents, Tools" (WAT) architecture designed for reliability, not just automation.
 
-> **This is a sanitized public replica.** All personal data — name, contact details, employers, salary figures, project links — is fictional demo content (`Alex Tan`). It exists so the architecture, prompts, and pipeline logic are inspectable and forkable without exposing anyone's real job search.
+> **This is a sanitized public replica.** All personal data — name, contact details, employers, salary figures, project links — is fictional demo content (`John Doe`). It exists so the architecture, prompts, and pipeline logic are inspectable and forkable without exposing anyone's real job search.
 
 ## Why this exists
 
