@@ -1,0 +1,464 @@
+# ============================================================
+# SINGLE SOURCE OF TRUTH for Google Sheet structure.
+#
+# Tools resolve columns BY HEADER NAME against the live sheet's
+# row 1 (matching is case/whitespace/punctuation-insensitive),
+# so columns may be reordered freely and user-added columns are
+# ignored by tools. Never address columns by letter in tools or
+# workflows.
+#
+# header kinds:
+#   tool    — written by tools (appends, syncs, write-backs)
+#   manual  — owned by Alex; tools only write via explicit
+#             --set or blank-only default seeding
+#   formula — computed in-sheet; tools REFUSE to write these
+#
+# Revision mechanism: edit this file + bump schema_version +
+# add a changelog entry, in the same commit as the tool/workflow
+# change that needs it. Run `python3 tools/check_schema.py`
+# after editing — it diffs this file against the live sheet
+# (and `--fix` appends any missing headers to the sheet).
+# ============================================================
+
+schema_version: 11
+changelog:
+  - version: 11
+    date: 2026-08-06
+    note: >
+      Tracker Action Req. redesigned into a phase-gated ladder and the app
+      lifecycle finalised. App Status vocab: 'Responded' retired, 'Completed'
+      added (To Apply → Applied → Completed) — 'Completed' was already in live
+      use. New manual 'Follow-up Date' column (date) records when a follow-up
+      was actually sent: it resets the 'Awaiting response' staleness clock
+      (counted from the later of Date Applied / Follow-up Date, stale ≥21 days)
+      and, blank on an Applied row past 3 days, drives the 'Follow-up due'
+      nudge. Follow-Up column now uses a dedicated 'follow_up_trigger'
+      vocabulary (doc_trigger + a 'No Contact' sentinel → Action Req.
+      'No contact — revisit'). Action Req. ladder (first match wins): URL blank
+      → ""; Outcome set → "✓ …"; Applied → cover-letter then follow-up actions
+      (Cover Letter never gates applying, per design); Completed → Awaiting
+      response (+ staleness); To Apply → Generate docs / Submit docs / Ready —
+      mark applied (gated on Resume + App Qns only). [Refined 2026-08-07 via
+      tools/update_action_req_find_contact.py — no schema/vocab change: the
+      Applied branch gained a 'Find Contact' rung (Follow-up Contact empty →
+      prompt immediately, amber), and Follow-Up 'Not Required' no longer
+      silences the nudge — with a contact present it falls through to the
+      ≥3-day 'Follow-up due' prompt; opt out of chasing a role by setting App
+      Status = Completed. 'No Contact' sentinel unchanged.] Posted/Closing display
+      columns gain Option-A assumed dates: a missing Date Posted/Closing is
+      inferred as EDATE(other, ∓1 month) for display and italicised via
+      conditional format. Conditional formatting reworked into one harmonised
+      palette shared by the Action Req. cell and every status/trigger dropdown
+      (amber = to-do, blue = in-progress, green = done/ready, grey =
+      passive/neutral, red = urgent, purple = networking). outcomes_report.py
+      updated (APPLIED_STATES now {Applied, Completed}; the awaiting-response
+      pending list counts both). Migrated live once by
+      tools/migrate_action_req_v11.py (snapshot-first, dry-run default, refuses
+      to re-run once migrated).
+  - version: 10
+    date: 2026-08-05
+    note: >
+      Tracker doc-trigger vocabulary relabelled for clarity: 'Generate' →
+      'Required' and 'Change > Generate' → 'Revise' (Generated / Submitted /
+      Not Required unchanged). Affects the Resume / Cover Letter / Follow-Up /
+      App Qns columns' dropdowns and Resume's seed_default (now 'Required').
+      Only the trigger *inputs* changed: run_doc_batch still writes 'Generated'
+      and derives fresh/revise from the agent-built manifest, and sync_tracker
+      reads seed_default straight from this file, so no executable tool logic
+      changed. The live Tracker was migrated once by
+      tools/migrate_doc_trigger_rename.py — renames existing cell values in the
+      four trigger columns, resets their data-validation dropdowns, and rewrites
+      the 'Action Req.' ARRAYFORMULA's trigger comparisons ("Generate"→
+      "Required", "Change > Generate"→"Revise"). Action Req.'s *output* labels
+      (e.g. "Generate docs", "Generate follow-up") are unchanged action text.
+  - version: 9
+    date: 2026-08-04
+    note: >
+      Tracker's 'Follow-Up Due' formula column removed (was WORKDAY(Date
+      Applied+4,1), used only by 'Action Req.' to compute its "Follow up due"
+      reminder tier and by its own now-removed highlight rule). Action Req.'s
+      ARRAYFORMULA was rewritten to compute that same due date inline from
+      Date Applied instead of reading a separate column — no behavior change,
+      one less column. Migrated live via the one-time
+      tools/remove_follow_up_due.py (deletes the column + its conditional
+      format, rewrites Action Req.); nothing else references Follow-Up Due.
+  - version: 8
+    date: 2026-08-04
+    note: >
+      Tracker gains an 'App Qns' free-form-question doc type, mirroring the
+      Resume/Cover Letter/Follow-Up trio: manual 'App Qns - Comments' (the
+      question text itself — required input, not optional revision feedback
+      like the other comment columns) and manual 'App Qns' (vocabulary
+      doc_trigger, seed_default 'Not Required'). New generator
+      tools/generate_app_questions.py answers each pasted question from
+      career_profile.md only (no fabrication) as a Q&A markdown doc, pushed
+      via push_docs_to_github.py's new 'app_questions' stage and driven by
+      run_doc_batch.py alongside the other doc types (workflow 03).
+  - version: 7
+    date: 2026-07-29
+    note: >
+      Raw Listings gains a tool 'Found' column (Alex added it directly to
+      the live sheet first; schema catches up): write_to_sheet.py now stamps
+      'gather-listings' on every tool-driven append (search_mcf.py,
+      WebFetch-capture prefetch, or a bare URL append), left blank for rows
+      Alex pastes into the sheet herself, for her to fill in by hand.
+      Existing pre-column rows were deliberately left blank rather than
+      guessed. Also: write_to_sheet.py's Curated-Listings-write backfill
+      (blank-only-fills Raw Listings' gather-time prefetch columns from
+      Curated's extraction output) now also backfills 'Source' via
+      source_from_url() — deterministic from the URL, no extraction
+      dependency.
+  - version: 6
+    date: 2026-07-28
+    note: >
+      Raw Listings gains a manual 'Interest Rating' (1-5) column, replacing
+      the informal rating text previously folded into 'Gather Notes' (now
+      purely the qualitative why-comment field). Skills Freq gains a tool
+      'Avg Interest Rating' column: tools/build_skills_sheet.py now also
+      reads Raw Listings and joins to Curated Listings by URL (Input URL ==
+      URL) to compute, per skill, the mean Interest Rating across rated
+      listings containing it. Unrated listings are excluded from the
+      average, not treated as 0.
+  - version: 5
+    date: 2026-07-16
+    note: >
+      Reconciled the open Curated Listings/Tracker drift (see changelog v4
+      note and prior manual edits): adopted Alex's manual rename
+      'Recruiter Contact'→'Follow-up Contact' on both tabs as the
+      permanent header (field/sync_from unchanged: still
+      recruiter_hr_contact). Dropped Curated Listings' 'App Status'
+      VLOOKUP-mirror formula column — intentionally removed, not replaced.
+  - version: 1
+    date: 2026-07-14
+    note: >
+      Initial extraction from workflows 01-04 and tool literals. Adds: 'skip'
+      scrape status, Raw Listings 'Gather Notes', Curated 'Fit Score' +
+      'Fit Rationale', Tracker 'Template'. Tracker A-J become tool-synced
+      static values (QUERY removed); Tracker 'Posted'/'Closing' become
+      local ARRAYFORMULAs over its own Date Posted / Date Closing.
+  - version: 2
+    date: 2026-07-15
+    note: >
+      Skills Freq gains manual 'Review Notes' column (workflow 04 Phase 2
+      skill-gap review loop), carried forward across the tab's wholesale
+      rebuild by tools/build_skills_sheet.py.
+  - version: 3
+    date: 2026-07-15
+    note: >
+      Raw Listings gains gather-time prefetch columns (Job Title, Company,
+      Salary, Date Posted, Date Closing) so search_mcf.py / Path B WebFetch
+      can write fully-scraped rows directly, skipping the redundant
+      Firecrawl re-scrape + Haiku re-derivation workflow 02 previously did
+      for facts already known at gather time.
+  - version: 4
+    date: 2026-07-16
+    note: >
+      Tracker control-panel redesign. App Status is now LIFECYCLE ONLY
+      (To Apply / Applied / Responded); the result moves to Outcome, whose
+      vocabulary changes from a bare date to a status (Interview / Offer /
+      Rejected / Closed). A new manual 'Outcome Date' takes over the date
+      role Outcome used to play. 'Days > Post' renamed 'Apply Lag' and
+      simplified to a single number (Date Applied − Date Posted; the old
+      "+ time-to-outcome" tail dropped). 'Follow-Up Date' renamed
+      'Follow-Up Due' (formula unchanged: WORKDAY(Date Applied + 4, 1)).
+      Two new formula columns: 'Salary (mo)' (monthly-normalised display of
+      the free-text Salary) and 'Action Req.' (the single next action per
+      row, derived from the doc_trigger + status columns). outcomes_report.py
+      updated to read the result from Outcome instead of App Status. Existing
+      rows remapped once by tools/migrate_outcome_split.py.
+
+tabs:
+  Raw Listings:
+    key: Input URL          # URL dedupe / row lookup column
+    headers:
+      - name: Input URL
+        kind: tool
+      - name: Text Scraped
+        kind: tool
+      - name: Date Scraped
+        kind: tool
+      - name: Scrape Status
+        kind: tool
+        vocabulary: scrape_status
+      - name: Source
+        kind: tool          # friendly job-board name derived from URL domain
+      - name: Found
+        kind: tool
+        note: >
+          Provenance: how this row entered Raw Listings. Tools stamp
+          'gather-listings' automatically on every append (search_mcf.py,
+          WebFetch-capture prefetch, or a bare URL append — see
+          write_to_sheet.py). Left blank by tools for rows Alex pastes
+          directly into the sheet herself; she fills in her own attribution
+          by hand for those. Pre-column rows were left blank rather than
+          guessed retroactively.
+      - name: Gather Notes
+        kind: manual
+        note: >
+          Why-I-am/am-not-drawn comments. Consumed by workflow 01's feedback
+          phase into search-targeting updates, then prefixed '✓ applied
+          YYYY-MM-DD — '. Mark unwanted rows Scrape Status='skip' instead of
+          deleting them — kept rows preserve URL dedupe memory so the
+          listing is not re-gathered.
+      - name: Interest Rating
+        kind: manual
+        note: >
+          1-5 personal interest rating (see interest_rating: block below for
+          scale meaning). Read by tools/build_skills_sheet.py, joined to
+          Curated Listings by URL, to compute Skills Freq's 'Avg Interest
+          Rating' per skill. Blank = not yet rated; excluded from averaging.
+      # Gather-time prefetch (added 2026-07-15): populated when the source
+      # already provides these facts (MCF API / Path B WebFetch read), so
+      # workflow 02 doesn't re-derive via a second scrape + Haiku guess.
+      # Blank for Path C manual-paste rows — extraction falls back to Haiku
+      # as before. Field names match extract_fields.py's own output keys so
+      # write_to_sheet.py's generic fields_to_cells() needs no special-casing.
+      - {name: Job Title,   kind: tool, field: job_title}
+      - {name: Company,     kind: tool, field: company}
+      - {name: Salary,      kind: tool, field: salary}
+      - {name: Date Posted, kind: tool, field: date_posted,         date: true}
+      - {name: Date Closing, kind: tool, field: application_deadline, date: true}
+
+  Curated Listings:
+    key: URL
+    headers:
+      - {name: URL,                       kind: tool, field: url}
+      - {name: Job Title,                 kind: tool, field: job_title}
+      - {name: Company,                   kind: tool, field: company}
+      - {name: Location,                  kind: tool, field: location}
+      - {name: Role Family,               kind: tool, field: role_family,        vocabulary: role_family}
+      - {name: ML Domain,                 kind: tool, field: ml_domain,          vocabulary: ml_domain}
+      - {name: Work Mode,                 kind: tool, field: work_mode,          vocabulary: work_mode}
+      - {name: Industry Vertical,         kind: tool, field: industry_vertical,  vocabulary: industry_vertical}
+      - {name: Employer Type,             kind: tool, field: employer_type,      vocabulary: employer_type}
+      - {name: Key Tools & Skills,        kind: tool, field: key_tools_skills}
+      - {name: Key Concepts & Practices,  kind: tool, field: key_concepts_practices}
+      - {name: Soft Skills/Others,        kind: tool, field: soft_skills_others}
+      - {name: Date Posted,               kind: tool, field: date_posted,         date: true}
+      - {name: Date Closing,              kind: tool, field: application_deadline, date: true}
+      - {name: Salary,                    kind: tool, field: salary}
+      - {name: Follow-up Contact,         kind: tool, field: recruiter_hr_contact}
+      - {name: Listing Status,            kind: tool, vocabulary: listing_status, append_default: extracted}
+      - name: Pre-Comments
+        kind: manual
+        note: >
+          Profile-gap notes; workflow 02 Phase 3 turns them into approved
+          profile edits, then prefixes '✓ applied YYYY-MM-DD — '.
+      - name: Posted
+        kind: formula       # "N days ago" ARRAYFORMULA over Date Posted
+      - name: Closing
+        kind: formula       # closing countdown ARRAYFORMULA over Date Closing
+      - {name: Fit Score,     kind: tool, field: fit_score}
+      - {name: Fit Rationale, kind: tool, field: fit_rationale}
+
+  Tracker:
+    key: URL
+    headers:
+      # Display fields synced (as static values) from Curated 'apply' rows by
+      # tools/sync_tracker.py — URL-keyed, never positional. sync_tracker owns
+      # these; other tools must not write them.
+      - {name: URL,               kind: tool, sync_from: URL}
+      - name: Posted
+        kind: formula       # "N days ago" ARRAYFORMULA over this tab's Date Posted
+      - {name: Job Title,         kind: tool, sync_from: Job Title}
+      - {name: Company,           kind: tool, sync_from: Company}
+      - {name: Location,          kind: tool, sync_from: Location}
+      - {name: Salary,            kind: tool, sync_from: Salary}
+      - name: Salary (mo)
+        kind: formula       # monthly-normalised display of the free-text Salary (ARRAYFORMULA)
+      - {name: Date Posted,       kind: tool, sync_from: Date Posted,  date: true}
+      - {name: Date Closing,      kind: tool, sync_from: Date Closing, date: true}
+      - name: Closing
+        kind: formula       # closing countdown ARRAYFORMULA over this tab's Date Closing
+      - {name: Follow-up Contact, kind: tool, sync_from: Follow-up Contact}
+      - name: App Status
+        kind: manual
+        vocabulary: app_status    # LIFECYCLE ONLY — the result lives in Outcome
+        seed_default: To Apply    # blank-only, seeded by sync_tracker
+      - {name: Date Applied,      kind: manual}
+      - name: Follow-up Date
+        kind: manual
+        date: true
+        note: >
+          Date you actually sent the follow-up (manual). Resets the 'Awaiting
+          response' staleness clock in Action Req. (counted from the later of
+          Date Applied / Follow-up Date; stale after 21 days) and, left blank on
+          an 'Applied' row past the 3-day mark, drives Action Req.'s 'Follow-up
+          due' nudge. When no follow-up contact exists, set the Follow-Up column
+          to 'No Contact' (Action Req. → 'No contact — revisit') instead.
+      - {name: "Apply Lag",       kind: formula}   # Date Applied − Date Posted (single number)
+      - name: Outcome
+        kind: manual
+        vocabulary: outcome       # result status (was: an outcome date, now moved to Outcome Date)
+      - name: Outcome Date
+        kind: manual
+        note: Date the Outcome landed; feeds no tool, kept for time-to-outcome analysis
+      - name: Action Req.
+        kind: formula       # single next action per row (ARRAYFORMULA over trigger + status cols)
+      - name: Resume - Comments
+        kind: manual        # consumed verbatim at generation, then ✓-prefixed by tool
+      - name: Resume
+        kind: manual
+        vocabulary: doc_trigger
+        seed_default: Required
+      - {name: Cover Letter - Comments, kind: manual}
+      - name: Cover Letter
+        kind: manual
+        vocabulary: doc_trigger
+        seed_default: Not Required
+      - {name: "Follow-Up - Comments",  kind: manual}
+      - name: Follow-Up
+        kind: manual
+        vocabulary: follow_up_trigger   # doc_trigger + a 'No Contact' sentinel
+        seed_default: Not Required
+      # NOT optional feedback like the comment columns above — this is the
+      # actual free-form question text to answer; required before setting
+      # App Qns=Required (enforced by run_doc_batch.py's validate()).
+      - {name: "App Qns - Comments", kind: manual}
+      - name: App Qns
+        kind: manual
+        vocabulary: doc_trigger
+        seed_default: Not Required
+      - {name: "Docs (Link)",     kind: tool}
+      - name: Docs Gen Date
+        kind: tool
+        raw: true           # DD-MM; must be written RAW / kept Plain text
+      - name: Template
+        kind: tool
+        note: Resume template used for this row (recorded by run_doc_batch for outcome analysis)
+
+  # Rebuilt wholesale by tools/build_skills_sheet.py on every /refresh-skills.
+  Skills Raw:
+    key: Skill / Term
+    headers:
+      - {name: Skill / Term, kind: tool}
+      - {name: Category,     kind: tool}
+      - {name: Job Title,    kind: tool}
+      - {name: Company,      kind: tool}
+      - {name: Role Family,  kind: tool}
+      - {name: ML Domain,    kind: tool}
+      - {name: Work Mode,    kind: tool}
+      - {name: Source URL,   kind: tool}
+
+  Skills Freq:
+    key: Skill / Term
+    headers:
+      - {name: Skill / Term,             kind: tool}
+      - {name: Category,                 kind: tool}
+      - {name: My Proficiency,           kind: tool}
+      - {name: Frequency,                kind: tool}
+      - {name: "Avg Interest Rating",    kind: tool}
+      - {name: Role Families,            kind: tool}
+      - {name: ML Domains,               kind: tool}
+      - {name: Work Modes,               kind: tool}
+      - {name: "Appears In (Job Titles)", kind: tool}
+      - name: Review Notes
+        kind: manual
+        note: >
+          Freeform: "add [at proficiency]" / "already covered as X" (alias
+          gap) / "skip". Processed by workflow 04 Phase 2 into an approved
+          profile (or ALIASES table) diff, then prefixed '✓ applied
+          YYYY-MM-DD — '. Created and carried forward across rebuilds by
+          tools/build_skills_sheet.py (keyed by normalised Skill/Term) —
+          NOT by check_schema.py, since this tab is fully rewritten each run.
+
+# ── Status vocabularies ──────────────────────────────────────
+# Machine-set values are lowercase; human-set values are Capitalized.
+vocabularies:
+  scrape_status:
+    - new                  # gathered, awaiting scrape
+    - scraped
+    - unable to scrape
+    - skip                 # manual pre-scrape triage — never delete the row (preserves dedupe)
+  listing_status:
+    - extracted            # machine-set on curation
+    - apply                # manual decision → sync_tracker picks up
+    - skip                 # manual dismissal
+  app_status:              # Tracker App Status — LIFECYCLE ONLY (result → Outcome)
+    - To Apply
+    - Applied              # submitted; cover-letter / follow-up steps may remain
+    - Completed            # your side done (applied + any follow-up) — now awaiting a reply
+    # 'Responded' retired in v11 (was: any reply received). 'Completed' was
+    # already in live use before being made official here.
+  outcome:                 # Tracker Outcome — the result of a Completed application
+    - Interview
+    - Offer
+    - Rejected
+    - Closed               # withdrawn / position filled / no-response timeout
+  doc_trigger:             # Tracker Resume / Cover Letter / App Qns columns
+    - Required             # triggers fresh generation (was 'Generate')
+    - Revise               # triggers revision, comments required (was 'Change > Generate')
+    - Generated            # set by tool after push + write-back
+    - Submitted            # manual, when actually sent
+    - Not Required
+  follow_up_trigger:       # Tracker Follow-Up column = doc_trigger + a 'No Contact' sentinel
+    - Required
+    - Revise
+    - Generated
+    - Submitted
+    - No Contact           # no follow-up contact found → Action Req. 'No contact — revisit'
+    - Not Required
+
+# ── Classification vocabularies (extraction prompt is built from these) ──
+classification:
+  role_family:
+    - Research Scientist
+    - Research Analyst
+    - ML Engineer
+    - Data Scientist
+    - AI Engineer
+    - Full-Stack AI Engineer
+    - Data Engineer
+  ml_domain:
+    - NLP / LLM
+    - Computer Vision
+    - Generative AI
+    - Multimodal
+    - Agentic AI / Multi-Agent
+    - Classical ML / Analytics
+    - MLOps / Infra
+    - Spatial / Geospatial
+  work_mode:
+    - {name: Research,    desc: "hypothesis-driven, novel methods"}
+    - {name: Engineering, desc: "model to production system"}
+    - {name: Analytics,   desc: "data to business decision"}
+    - {name: Product,     desc: "feature to user experience"}
+  industry_vertical:
+    - FinTech
+    - HealthTech
+    - Logistics / Ops
+    - Social / Media / Creative
+    - Industrial / B2B
+    - Research Institute / Lab
+    - Gaming / Entertainment
+    - General Tech / SaaS
+    - Government / Public Sector
+  employer_type:
+    - Research Institute / Lab
+    - AI-First Startup
+    - Established Tech
+    - Recruitment / Agency
+    - GLC / Government
+    - MNC
+    - Consultancy
+
+# Fit scoring (Curated 'Fit Score' / 'Fit Rationale', advisory only —
+# apply/skip decisions stay manual). Produced by extract_fields.py from the
+# preference sections of profile/career_profile.md front matter.
+fit_score:
+  scale: 1-5
+  meaning: >
+    5 = strong match on top-ranked domains + preferred industry/employer, no
+    red flags; 3 = plausible but mixed; 1 = matches a dealbreaker or avoid-list
+    entry. Rationale must cite the specific preferences that matched/clashed.
+
+# Interest scoring (Raw Listings 'Interest Rating', personal/manual — not
+# derived by any tool). Feeds Skills Freq's 'Avg Interest Rating' via
+# tools/build_skills_sheet.py, joined to Curated Listings by URL.
+interest_rating:
+  scale: 1-5
+  meaning: >
+    5 = would drop everything to apply immediately; 3 = solid interest,
+    would apply given time; 1 = low interest, applying only as a backup.
+    Wording is a starting point — tune to taste, the scale is what matters
+    for averaging.

@@ -1,0 +1,176 @@
+%-------------------------
+% Resume - Alex Tan
+% Domain variant: Spatial / Geospatial Data Science
+% Best for: Spatial Data Scientist, GIS Analyst, Urban Analytics, Climate/Sustainability tech
+% Emphasis: CIPA GIS toolbox, ArcPy expertise, EUI (built environment), spatial ML
+%-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+\setlength{\footskip}{3.6pt}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{fontawesome}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.55in}
+\addtolength{\evensidemargin}{-0.55in}
+\addtolength{\textwidth}{1.1in}
+\addtolength{\topmargin}{-.6in}
+\addtolength{\textheight}{1.2in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-8pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+
+\newcommand{\resumeItem}[1]{\item\small{{#1\vspace{-3pt}}}}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeExpHeading}[3]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} -- \textit{#2} & {#3} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \vspace{-1pt}\item
+    \begin{tabular*}{0.98\textwidth}{l@{\extracolsep{\fill}}r}
+      \normalsize #1 & \normalsize #2 \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.05in, rightmargin=0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, rightmargin=0.05in]\vspace{-2pt}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
+
+%==========================================================
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\huge \scshape Alex Tan} \\ \vspace{5.0pt}\small
+ \raisebox{-0.1\height} \faPhone\ +65 8123 4567 ~
+ \href{mailto:alex.tan.demo@example.com}
+ {\raisebox{-0.1\height}\faEnvelopeO\  \underline{alex.tan.demo@example.com}} ~
+\href{https://linkedin.com/in/alex-tan-demo/}{\raisebox{-0.1\height}\faLinkedinSquare\ \underline{linkedin/alex-tan-demo}} ~
+\href{https://github.com/alex-tan-demo}{\raisebox{-0.1\height}\faGithub\ \underline{github/alex-tan-demo}} ~
+\end{center}
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Ashcroft University London}{Singapore - Meridian Global Education}
+      {BSc Computer Science, AI/ML Specialisation \textnormal{---} Second Class Honours (Upper Division)}{Nov 2024}
+      \resumeItemListStart
+      \vspace{2pt}
+        \resumeItem{\textbf{Relevant Coursework:} Machine Learning \& Neural Networks, Artificial Intelligence, Data Science, Databases \& Advanced Data Techniques, Intelligent Signal Processing, Algorithms \& Data Structures, Computer Security, Software Design \& Development}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.05in, label={}]
+    \small{\item{
+     \textbf{GIS \& Geospatial:}{ ArcGIS Pro, ArcPy, Geodatabase Management, SVY21 Coordinate System, Batch Processing, Attribute Scrambling} \\
+     \textbf{Languages:}{ Python, SQL (PostgreSQL, MySQL), JavaScript, Java, C/C++} \\
+     \textbf{ML \& Data Science:}{ Scikit-Learn, TensorFlow/Keras, Pandas, NumPy, Matplotlib, Seaborn, Feature Engineering, EDA} \\
+     \textbf{NLP \& AI:}{ RAG, LLM Integration, NLTK, spaCy, TF-IDF, OpenCV, CNNs} \\
+     \textbf{Tools \& Platforms:}{ Git/GitHub, Docker, GCP, Linux CLI, Jupyter, VSCode, FastAPI, PostgreSQL}}}
+     \vspace{-4pt}
+  \end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+    \resumeExpHeading{Civic Infrastructure Planning Authority (CIPA), Geospatial Planning Division}{GIS Intern}{Jun 2025 -- Nov 2025}
+      \resumeItemListStart
+        \resumeItem{Developed a Python/ArcPy ArcGIS Pro Toolbox automating UAT dataset extraction from large-scale national geodatabases, implementing custom attribute-scrambling logic for sensitive utility data redaction while preserving schema integrity --- reducing extraction time by 80\%}
+        \resumeItem{Proposed a RAG/LLM-based automated validation pipeline for GIS submissions to the GeoLink Whole-of-Government infrastructure planning platform}
+        \resumeItem{Authored the team's Data Management Handbook covering ArcPy, GIS fundamentals, data quality frameworks, and underground utility planning workflows; served as technical liaison during UAT for senior engineering leadership}
+      \resumeItemListEnd
+
+    \resumeExpHeading{AeroScope Technologies}{Full-Stack Development (Stakeholder Project)}{Apr 2026 -- Present}
+      \resumeItemListStart
+        \resumeItem{Architecting a FastAPI/PostgreSQL backend with a React frontend for an end-to-end UAV inspection automation platform; implementing canvas-based annotation tooling (Konva.js) producing structured JSON training data for downstream CV/NLP models}
+        \resumeItem{Building a programmatic document generation engine (python-docx, Pillow/OpenCV) and scoping a vision-language model pipeline (CLIP, GPT-4o) for zero-shot inspection comment generation}
+      \resumeItemListEnd
+
+    \resumeExpHeading{NimbusTech Pte Ltd}{Software Engineering Intern}{Mar 2019 -- Jul 2019}
+      \resumeItemListStart
+        \resumeItem{Developed a real-time solar panel analytics dashboard using Node.js, Express, and MongoDB, implementing RESTful APIs for live energy consumption visualisation}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading{\textbf{CIPA GIS Toolbox --- UAT Dataset Automation} $|$ \emph{Python, ArcPy, ArcGIS Pro}}{}
+      \resumeItemListStart
+        \resumeItem{Built an ArcGIS Pro Toolbox with custom attribute-scrambling (itertools), multi-value batch processing, and environment management (workspace restoration, overwrite protection) for reliable large-scale geodatabase automation}
+        \resumeItem{Proposed and documented a RAG/LLM validation pipeline for GIS data quality review; authored data quality frameworks covering SVY21, schema normalisation, and underground utility standards}
+      \resumeItemListEnd
+
+    \resumeProjectHeading{\textbf{Building Energy Use Prediction} $|$ \emph{Scikit-learn, Pandas, Seaborn}}{\href{https://github.com/alex-tan-demo/energy-use-prediction-demo}{\underline{GitHub}}}
+      \resumeItemListStart
+        \resumeItem{Developed a linear regression model to predict building EUI from physical and operational characteristics; engineered domain-specific features (chiller age, solar panel presence, AC efficiency) and conducted comprehensive EDA to surface actionable sustainability insights}
+      \resumeItemListEnd
+
+    \resumeProjectHeading{\textbf{Automated Traffic Monitoring \& Counting System} $|$ \emph{Python, OpenCV}}{}
+      \resumeItemListStart
+        \resumeItem{Built a CV pipeline for real-time vehicle detection and counting using frame differencing, background subtraction, and morphological operations ($\sim$80\% accuracy) --- applicable to urban planning and smart city infrastructure monitoring}
+      \resumeItemListEnd
+
+    \resumeProjectHeading{\textbf{Handwritten Digit Recognition (OCR)} $|$ \emph{TensorFlow, Keras, OpenCV}}{\href{https://github.com/alex-tan-demo/handwritten-digit-recognition-demo}{\underline{GitHub}}}
+      \resumeItemListStart
+        \resumeItem{Optimised a CNN classification pipeline on 90,000+ samples, achieving \textbf{93.92\% accuracy} --- surpassing the 93.16\% IEEE benchmark via custom augmentation and systematic model benchmarking}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------LEADERSHIP-----------
+\section{Leadership}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Singapore Tamil Youth Toastmasters' Club}{Singapore}
+      {Vice President, Public Relations}{Jun 2021 -- Jun 2022}
+      \resumeItemListStart
+        \resumeItem{Led marketing and outreach for Singapore's first youth-led bilingual Toastmasters club; secured sponsorship partnerships and coordinated charter events}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%==========================================================
+\end{document}
